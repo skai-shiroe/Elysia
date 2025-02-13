@@ -1,4 +1,4 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { loginBodySchema, signupBodySchema } from "./schema";
 import { prisma } from "./lib/prisma";
 import { reverseGeocodingAPI } from "./lib/geoapify";
@@ -18,6 +18,7 @@ export const authRoutes = new Elysia({ prefix: "api/auth" })
       secret: Bun.env.JWT_SECRET!,
     })
   )
+  // inscription
   .post(
     "/sign-up",
     async ({ body }) => {
@@ -62,7 +63,7 @@ export const authRoutes = new Elysia({ prefix: "api/auth" })
       },
     }
   )
-  
+  // connexion
   .post(
     "/sign-in",
     async ({ body, jwt, cookie: { accessToken, refreshToken }, set }) => {
@@ -78,9 +79,7 @@ export const authRoutes = new Elysia({ prefix: "api/auth" })
 
       if (!user) {
         set.status = "Bad Request";
-        throw new Error(
-          " email ou mot de passe incorrect"
-        );
+        throw new Error(" email ou mot de passe incorrect");
       }
 
       // match password
@@ -91,9 +90,7 @@ export const authRoutes = new Elysia({ prefix: "api/auth" })
       );
       if (!matchPassword) {
         set.status = "Bad Request";
-        throw new Error(
-          "email ou mot de passe incorrect"
-        );
+        throw new Error("email ou mot de passe incorrect");
       }
 
       // create access token
@@ -144,7 +141,7 @@ export const authRoutes = new Elysia({ prefix: "api/auth" })
       body: loginBodySchema,
     }
   )
-
+  // refresh token
   .post(
     "/refresh",
     async ({ cookie: { accessToken, refreshToken }, jwt, set }) => {
@@ -219,6 +216,38 @@ export const authRoutes = new Elysia({ prefix: "api/auth" })
       };
     }
   )
+  // update user information
+  .use(authPlugin)
+  .put(
+    "/changeinfo",
+    async ({ body, user, set }) => {
+      const updatedUser = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          name: body.name,
+          email: body.email,
+          location: body.location,
+          isAdult: body.isAdult,
+        },
+      });
+
+      return {
+        message: "Profil mis à jour avec succès",
+        data: {
+          user: updatedUser,
+        },
+      };
+    },
+    {
+      body: t.Object({
+        name: t.Optional(t.String({ maxLength: 60, minLength: 1 })),
+        email: t.Optional(t.String({ format: "email" })),
+        location: t.Optional(t.Tuple([t.Number(), t.Number()])),
+        isAdult: t.Optional(t.Boolean()),
+      }),
+    }
+  )
+  // deconnexion
   .use(authPlugin)
   .post("/logout", async ({ cookie: { accessToken, refreshToken }, user }) => {
     // remove refresh token and access token from cookies
@@ -239,6 +268,7 @@ export const authRoutes = new Elysia({ prefix: "api/auth" })
       message: "Logout successfully",
     };
   })
+  //recuperation des informations de l'utilisateur
   .get("/me", ({ user }) => {
     return {
       message: "Fetch current user",
