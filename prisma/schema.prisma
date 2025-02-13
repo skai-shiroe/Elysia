@@ -4,21 +4,23 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+//Générateur du client Prisma
 generator client {
   provider = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
-
+//Définition de la connexion à la base de données
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+//Définition des rôles utilisateur (Enumération)
 enum UserRole {
   User
   Admin
 }
-
+// Modèle de la table User
 model User {
   id           String    @id @default(uuid())
   name         String    @db.VarChar(60)

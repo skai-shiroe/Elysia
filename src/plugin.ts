@@ -37,10 +37,16 @@ const authPlugin = (app: Elysia) =>
         set.status = "Forbidden";
         throw new Error("Access token is invalid");
       }
-
+        // all is good return user
       return {
         user,
       };
     });
 
 export { authPlugin };
+
+// Vérifie la présence du JWT dans les cookies.
+// Décode et vérifie le JWT avec la clé secrète.
+// Récupère l’ID de l’utilisateur à partir du token.
+// Cherche l’utilisateur dans la base de données.
+// Si tout est bon, il ajoute l’utilisateur au contexte de la requête.

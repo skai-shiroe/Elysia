@@ -19,6 +19,51 @@ export const authRoutes = new Elysia({ prefix: "api/auth" })
     })
   )
   .post(
+    "/sign-up",
+    async ({ body }) => {
+      // hash password
+      const password = await Bun.password.hash(body.password, {
+        algorithm: "bcrypt",
+        cost: 10,
+      });
+
+      // fetch user location from lat & lon
+      let location: any;
+      if (body.location) {
+        const [lat, lon] = body.location;
+        location = await reverseGeocodingAPI(lat, lon);
+      }
+      const user = await prisma.user.create({
+        data: {
+          ...body,
+          password,
+          location,
+        },
+      });
+      return {
+        message: "Account created successfully",
+        data: {
+          user,
+        },
+      };
+    },
+    {
+      body: signupBodySchema,
+      error({ code, set, body }) {
+        // handle duplicate email error throw by prisma
+        // P2002 duplicate field erro code
+        if ((code as unknown) === "P2002") {
+          set.status = "Conflict";
+          return {
+            name: "Error",
+            message: `The email address provided ${body.email} already exists`,
+          };
+        }
+      },
+    }
+  )
+  
+  .post(
     "/sign-in",
     async ({ body, jwt, cookie: { accessToken, refreshToken }, set }) => {
       // match user email
@@ -34,7 +79,7 @@ export const authRoutes = new Elysia({ prefix: "api/auth" })
       if (!user) {
         set.status = "Bad Request";
         throw new Error(
-          "The email address or password you entered is incorrect"
+          " email ou mot de passe incorrect"
         );
       }
 
@@ -47,7 +92,7 @@ export const authRoutes = new Elysia({ prefix: "api/auth" })
       if (!matchPassword) {
         set.status = "Bad Request";
         throw new Error(
-          "The email address or password you entered is incorrect"
+          "email ou mot de passe incorrect"
         );
       }
 
@@ -99,50 +144,7 @@ export const authRoutes = new Elysia({ prefix: "api/auth" })
       body: loginBodySchema,
     }
   )
-  .post(
-    "/sign-up",
-    async ({ body }) => {
-      // hash password
-      const password = await Bun.password.hash(body.password, {
-        algorithm: "bcrypt",
-        cost: 10,
-      });
 
-      // fetch user location from lat & lon
-      let location: any;
-      if (body.location) {
-        const [lat, lon] = body.location;
-        location = await reverseGeocodingAPI(lat, lon);
-      }
-      const user = await prisma.user.create({
-        data: {
-          ...body,
-          password,
-          location,
-        },
-      });
-      return {
-        message: "Account created successfully",
-        data: {
-          user,
-        },
-      };
-    },
-    {
-      body: signupBodySchema,
-      error({ code, set, body }) {
-        // handle duplicate email error throw by prisma
-        // P2002 duplicate field erro code
-        if ((code as unknown) === "P2002") {
-          set.status = "Conflict";
-          return {
-            name: "Error",
-            message: `The email address provided ${body.email} already exists`,
-          };
-        }
-      },
-    }
-  )
   .post(
     "/refresh",
     async ({ cookie: { accessToken, refreshToken }, jwt, set }) => {
