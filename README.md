@@ -55,3 +55,14 @@ bun add -D @types/pg
 
 
 This project was created using `bun init` in bun v1.1.43. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+
+
+```bash
+bun install  # Réinstaller toutes les dépendances
+bun prisma generate  # Générer Prisma Client
+bunx prisma db push # Créer la base de données
+bun add @prisma/client  # Vérifier l'installation de Prisma Client
+bun add -d prisma  # Vérifier l'installation de Prisma CLI
+bun prisma migrate dev --name init  # Créer et appliquer une migration propre
+bun run dev  # Lancer l'application
+```
