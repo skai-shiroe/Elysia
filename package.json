@@ -10,7 +10,8 @@
   "dependencies": {
     "@elysiajs/jwt": "^1.2.0",
     "@elysiajs/swagger": "^1.2.0",
-    "@prisma/client": "^6.2.1",
+    "@prisma/client": "^6.3.1",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "elysia": "latest",
     "resend": "^4.1.2"
@@ -21,7 +22,7 @@
     "@types/supertest": "^6.0.2",
     "bun-types": "latest",
     "jest": "^29.7.0",
-    "prisma": "6.2.1",
+    "prisma": "^6.3.1",
     "supertest": "^7.0.0"
   },
   "module": "src/index.js"
